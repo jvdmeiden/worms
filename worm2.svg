@@ -33,8 +33,8 @@ function startup(evt){
   }
 
 function tick(evt){ 
-  // console.log(JSON.stringify(field));
-  // console.log(JSON.stringify(worm));
+   console.log(JSON.stringify(field));
+   console.log(JSON.stringify(worm));
   var x = worm[0];
   var y = worm[1];
   var v = worm[2];
@@ -59,8 +59,8 @@ function tick(evt){
   
   // draw the line and update field 
   draw(x,y,xn,yn);
-  field[x][y][v]=true;
-  field[xn][yn][(v+3)%6]=true;
+  field[xn][yn][v]=true;
+  field[x][y][(v+3)%6]=true;
   // update worm based on type, eg "1a2d3cbaa4b"
   worm[0]=xn;
   worm[1]=yn;
@@ -70,15 +70,15 @@ function tick(evt){
     if ( e == true ) cnt += 1;
   });
   console.log(cnt);
-  console.log(type.charAt(1));
   if (cnt==1){
-    console.log("PIPO");
+    console.log(type.charAt(1));
     if ( type.charAt(1)=='a' ) worm[2]=(4+odir)%6; 
 	if ( type.charAt(1)=='b' ) worm[2]=(5+odir)%6;
 	if ( type.charAt(1)=='c' ) worm[2]=(2+odir)%6;
 	if ( type.charAt(1)=='a' ) worm[2]=(1+odir)%6;
   }
   if (cnt==2){
+    console.log(type.charAt(3));
     if ( type.charAt(3)== 'a' ) {
 	  if (field[xn][yn][(odir+5)%6]== true) worm[2]=(1+odir)%6;
 	  if (field[xn][yn][(odir+4)%6]== true) worm[2]=(1+odir)%6;
@@ -108,11 +108,91 @@ function tick(evt){
       if (field[xn][yn][(odir+1)%6]== true) worm[2]=(5+odir)%6; 
 	}	  
   }
+  if (cnt==3){
+    console.log(type.charAt(5));  
+    if ( type.charAt(5)== 'a' ) {
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+2)%6]== true  ) worm[2]=(3+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+3)%6]== true  ) worm[2]=(5+odir)%6;
+	}	  
+    if ( type.charAt(5)== 'b' ) {
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+2)%6]== true  ) worm[2]=(4+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+3)%6]== true  ) worm[2]=(2+odir)%6;
+	}	  
+    if ( type.charAt(5)== 'c' ) {
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+2)%6]== true  ) worm[2]=(5+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+3)%6]== true  ) worm[2]=(4+odir)%6;
+	}	  
+    console.log(type.charAt(6));  
+    if ( type.charAt(6)== 'a' ) {
+	  if (field[xn][yn][(odir+2)%6]== true && field[xn][yn][(odir+3)%6]== true  ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(3+odir)%6;
+	}	  
+    if ( type.charAt(6)== 'b' ) {
+	  if (field[xn][yn][(odir+2)%6]== true && field[xn][yn][(odir+3)%6]== true  ) worm[2]=(4+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(2+odir)%6;
+	}	  
+    if ( type.charAt(6)== 'c' ) {
+	  if (field[xn][yn][(odir+2)%6]== true && field[xn][yn][(odir+3)%6]== true  ) worm[2]=(5+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(4+odir)%6;
+	}	  
+    console.log(type.charAt(7));  
+    if ( type.charAt(7)== 'a' ) {
+	  if (field[xn][yn][(odir+3)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(3+odir)%6;
+	}	  
+    if ( type.charAt(7)== 'b' ) {
+	  if (field[xn][yn][(odir+3)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(2+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(1+odir)%6;
+	}	  
+    if ( type.charAt(7)== 'c' ) {
+	  if (field[xn][yn][(odir+3)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(5+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(5+odir)%6;
+	}	  
+    console.log(type.charAt(8));  
+    if ( type.charAt(8)== 'a' ) {
+	  if (field[xn][yn][(odir+4)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== true && field[xn][yn][(odir+4)%6]== true  ) worm[2]=(1+odir)%6;
+	}	  
+    if ( type.charAt(8)== 'b' ) {
+	  if (field[xn][yn][(odir+4)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(2+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(2+odir)%6;
+	}	  
+    if ( type.charAt(8)== 'c' ) {
+	  if (field[xn][yn][(odir+4)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(3+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== true && field[xn][yn][(odir+5)%6]== true  ) worm[2]=(4+odir)%6;
+	}	  
+  }  
+  if (cnt==4){
+    console.log(type.charAt(10));  
+    if ( type.charAt(10)== 'a' ) {
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+2)%6]== false ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+3)%6]== false ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+4)%6]== false ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(1+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== false && field[xn][yn][(odir+3)%6]== false ) worm[2]=(2+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== false && field[xn][yn][(odir+4)%6]== false ) worm[2]=(2+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(2+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== false && field[xn][yn][(odir+4)%6]== false ) worm[2]=(3+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(3+odir)%6;
+	  if (field[xn][yn][(odir+4)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(4+odir)%6;
+	}	  
+    if ( type.charAt(10)== 'b' ) {
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+2)%6]== false ) worm[2]=(2+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+3)%6]== false ) worm[2]=(3+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+4)%6]== false ) worm[2]=(4+odir)%6;
+	  if (field[xn][yn][(odir+1)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(5+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== false && field[xn][yn][(odir+3)%6]== false ) worm[2]=(3+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== false && field[xn][yn][(odir+4)%6]== false ) worm[2]=(4+odir)%6;
+	  if (field[xn][yn][(odir+2)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(5+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== false && field[xn][yn][(odir+4)%6]== false ) worm[2]=(4+odir)%6;
+	  if (field[xn][yn][(odir+3)%6]== false && field[xn][yn][(odir+3)%6]== false ) worm[2]=(5+odir)%6;
+	  if (field[xn][yn][(odir+4)%6]== false && field[xn][yn][(odir+5)%6]== false ) worm[2]=(5+odir)%6;
+	}	  
+  }  
 
   
-  // worm[2]=(worm[2]+1)%6;
   
-  t=setTimeout("tick()",50); 
+  if ( cnt != 5 ) t=setTimeout("tick()",500); 
 }   
 
 function draw(x1,y1,x2,y2){
