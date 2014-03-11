@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?> 
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/SVG/DTD/svg10.dtd"> 
+<svg xmlns="http://www.w3.org/2000/svg" 
+onload="startup(evt)" >
+<!-- Author: Jan van der Meiden                                           -->
+<!-- jvdmeiden@gmail.com                                                  -->
+<!-- Version: 20140308.00                                                 -->
+<!-- Copyright (c) 2014 Jan van der Meiden.                               -->
+<!-- Copying and distribution of this file, with or without modification, -->
+<!-- are permitted in any medium without royalty provided the copyright   -->
+<!-- notice and this notice are preserved.                                -->
+
+<script><![CDATA[
+var SVGDoc = null;
+var lineRoot = null;
+var sq3=Math.sqrt(3);
+var increment = 12;
+var svgns = 'http://www.w3.org/2000/svg';
+// the field contains information on what was eaten where, heavily relying on associative arrays
+var field = new Object;
+field = {"0":{"0":[false,false,false,false,false,false]}};
+// currently allowing one worm, has x and y positiom and direction
+var worm = [0,0,0];
+var offsetX = window.innerWidth/2;
+var offsetY = window.innerHeight/2;
+
+// types follow naming as described by Martin Gardner Mathematical Games
+// var typeString = "1015051";
+// var typeString = "1505141";
+var typeString = "1420451";
+
+// setup type array
+var typeA={ "0" : parseInt(typeString[0]) };
+typeString=typeString.substring(1,typeString.length);
+
+// setup translation of direction to coordinates
+var dirs = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+  
+function startup(evt){
+  SVGDoc = evt.target.ownerDocument;
+  lineRoot = SVGDoc.getElementById("Lines"); 
+  t=setTimeout("tick()",50);
+  }
+
+function tick(evt){ 
+  // console.log(JSON.stringify(field));
+  // console.log(JSON.stringify(worm));
+  var x = worm[0];
+  var y = worm[1];
+  var v = worm[2];
+  
+  // based on direction find the next field  
+  var xn = x + dirs[v][0];
+  var yn = y + dirs[v][1];
+  
+  // check if next field exist if not create
+  if (field[xn] === undefined) {
+    field[xn]=({});
+  }
+  if (field[xn][yn] === undefined) {
+    field[xn][yn]=[false,false,false,false,false,false];
+  }
+  
+  // draw the line and update field 
+  draw(x,y,xn,yn);
+  field[xn][yn][v]=true;
+  field[x][y][(v+3)%6]=true;
+  
+  // update worm based on type,
+  worm[0]=xn;
+  worm[1]=yn;
+  odir=worm[2];
+  var typ=0;
+  var cnt=0;
+  
+  for(var i=1; i<6 ; i++){
+	typ*=2;
+    if ( field[xn][yn][(i+odir)%6] == true ) {
+	  typ += 1;
+	  cnt += 1;
+	}  
+  };
+  
+  if (cnt<4){
+    if(typeA[typ]===undefined){
+      typeA[typ]=parseInt(typeString[0]);
+      typeString=typeString.substring(1,typeString.length);    
+    }
+    worm[2]=(odir+typeA[typ])%6;
+  } else {
+    for(var i=0; i<6 ; i++){
+      if ( field[xn][yn][i] == false ) {
+	    worm[2]=(i+3)%6;
+	  }  
+   };
+  
+  }
+ 
+  if ( typ != 31 ) t=setTimeout("tick()",10); 
+}   
+
+function draw(x1,y1,x2,y2){
+  NewLine = SVGDoc.createElementNS(svgns,"line"); 
+  NewLine.setAttribute("x1", offsetX+increment*(x1+y1/2)); 
+  NewLine.setAttribute("y1", offsetY-sq3*increment*y1/2); 
+  NewLine.setAttribute("x2", offsetX+increment*(x2+y2/2)); 
+  NewLine.setAttribute("y2", offsetY-sq3*increment*y2/2); 
+  NewLine.setAttribute("width", 1); 
+  NewLine.setAttribute("stroke","rgb(50,50,50)"); 
+  lineRoot.appendChild(NewLine); 
+}
+
+]]></script> 
+
+<rect x="0" y="0" width="100%" height="100%" 
+	fill="#e0e0e0" /> 
+ <g id="Lines">
+ </g>
+</svg> 
