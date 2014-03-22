@@ -48,6 +48,7 @@ function submitWorm(evt){
 
   // clear field
   field = {"0":{"0":[false,false,false,false,false,false]}};
+  worm = [0,0,0];
   
   // clear lines
   var element = document.getElementById("Lines");
