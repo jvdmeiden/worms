@@ -16,9 +16,10 @@ var lineRoot = null;
 var sq3=Math.sqrt(3);
 var increment = 12;
 var svgns = 'http://www.w3.org/2000/svg';
+
 // the field contains information on what was eaten where, heavily relying on associative arrays
 var field = new Object;
-field = {"0":{"0":[false,false,false,false,false,false]}};
+
 // currently allowing one worm, has x and y positiom and direction
 var worm = [0,0,0];
 var offsetX = window.innerWidth/2;
@@ -42,6 +43,16 @@ function submitWorm(evt){
   // setup type array
   typeA={ "0" : parseInt(typeString[0]) };
   typeString=typeString.substring(1,typeString.length);
+
+  // clear field
+  field = {"0":{"0":[false,false,false,false,false,false]}};
+  
+  // clear lines
+  var element = document.getElementById("Lines");
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+  
   setTimeout("tick()",20);
   return false;
 }

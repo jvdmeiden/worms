@@ -41,9 +41,20 @@ function submitWorm(evt){
   typeWorm=document.getElementById( 'myWorm' ).value;
   console.log(typeWorm);
   typeString=typeWorm.split('--')[1];
+
   // setup type array
   typeA={ "0" : parseInt(typeString[0]) };
   typeString=typeString.substring(1,typeString.length);
+
+  // clear field
+  field = {"0":{"0":[false,false,false,false,false,false]}};
+  
+  // clear lines
+  var element = document.getElementById("Lines");
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+  
   setTimeout("tick()",20);
   return false;
 }
