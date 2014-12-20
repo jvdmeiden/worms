@@ -125,8 +125,8 @@ function draw(x1,y1,x2,y2){
   NewLine.setAttribute("y1", offsetY-sq3*increment*y1/2); 
   NewLine.setAttribute("x2", offsetX+increment*(x2+y2/2)); 
   NewLine.setAttribute("y2", offsetY-sq3*increment*y2/2); 
-  NewLine.setAttribute("width", increment/3); 
-  NewLine.setAttribute("stroke","rgb("+(128+120*(x1-x2))+","+(64+60*(y1-y2))+","+(128+60*(y1-y2))+")"); 
+  NewLine.setAttribute("stroke-width", increment/6); 
+  NewLine.setAttribute("stroke","rgb("+(128+127*(x1-x2))+","+(128+60*(y2-y1))+","+(128+60*(y1-y2))+")"); 
   lineRoot.appendChild(NewLine); 
 }
 
