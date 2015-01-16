@@ -13,7 +13,7 @@
 var SVGDoc = null;
 var lineRoot = null;
 var sq3=Math.sqrt(3);
-var scale = 16;
+var scale = 0;
 var svgns = 'http://www.w3.org/2000/svg';
 var steps = 0;
 
@@ -43,7 +43,7 @@ function startup(evt){
 function submitWorm(evt){
   typeWorm=document.getElementById( 'myWorm' ).value;
   steps=0;
-  scale = 16;
+  scale = 64;
   typeString=typeWorm.split('--')[1];
   // setup type array
   typeA={ "0" : parseInt(typeString[0]) };
@@ -146,11 +146,11 @@ function draw(x1,y1,x2,y2){
   }
   if (xmax>(2*offsetX)-10 || ymax>(2*offsetY)-10 || xmin<10 || ymin<10 ){
     // Lets resize
-	xmin = offsetX;
+    xmin = offsetX;
     ymin = offsetY;
     xmax = offsetX;
     ymax = offsetY;
-	scale=scale*0.8;
+    scale=scale*0.9;
     var t = lineRoot.childNodes;
     for(i=0; i<t.length; i++){
 	console.log(t[i]);
