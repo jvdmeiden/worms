@@ -3,4 +3,4 @@ worms
 
 Paterson's worms in SVG
 
-See http://janvandermeiden.blogspot.nl/2012/06/patersons-worms.html
+http://janvandermeiden.blogspot.nl/2014/03/patersons-worms-in-scalable-vector.html
