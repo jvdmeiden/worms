@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/SVG/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" onload="startup(evt)" style="background-color: rgb(20,20,20)">&gt;
+<!-- Author: Jan van der Meiden                                           -->
+<!-- jvdmeiden@gmail.com                                                  -->
+<!-- Version: 20140308.00                                                 -->
+<!-- Copyright (c) 2014 Jan van der Meiden.                               -->
+<!-- Copying and distribution of this file, with or without modification, -->
+<!-- are permitted in any medium without royalty provided the copyright   -->
+<!-- notice and this notice are preserved.                                -->
+
+<script><![CDATA[
+var SVGDoc = null;
+var lineRoot = null;
+var sq3=Math.sqrt(3);
+var scale = 32;
+var svgns = 'http://www.w3.org/2000/svg';
+var steps = 0;
+var incColor = 0;
+
+// the field contains information on what was eaten where, heavily relying on associative arrays
+var field = new Object;
+
+// currently allowing one worm, has x and y positiom and direction
+var worm = [0,0,0];
+var offsetX = window.innerWidth/2;
+var offsetY = window.innerHeight/2;
+var typeA = null;
+var xmin = offsetX;
+var ymin = offsetY;
+var xmax = offsetX;
+var ymax = offsetY;
+
+// types follow naming as described on http://wso.williams.edu/~bchaffin/patersons_worms/allworms.htm
+
+// setup translation of direction to coordinates
+var dirs = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+  
+function startup(evt){
+  SVGDoc = evt.target.ownerDocument;
+  lineRoot = SVGDoc.getElementById("Lines");
+  submitWorm(); 
+}
+
+function submitWorm(evt){
+  typeWorm=document.getElementById( 'myWorm' ).value;
+  steps=0;
+  scale = 32;
+  typeString=typeWorm.split('--')[1];
+  // setup type array
+  typeA={ "0" : parseInt(typeString[0]) };
+  typeString=typeString.substring(1,typeString.length);
+
+  // clear field
+  field = {"0":{"0":[false,false,false,false,false,false]}};
+  worm = [0,0,0];
+  
+  // clear lines
+  var element = document.getElementById("Lines");
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+  
+  setTimeout("tick()",2000);
+  return false;
+}
+
+function tick(evt){ 
+  // console.log(JSON.stringify(field));
+  // console.log(JSON.stringify(worm));
+  var x = worm[0];
+  var y = worm[1];
+  var v = worm[2];
+  
+  // based on direction find the next field  
+  var xn = x + dirs[v][0];
+  var yn = y + dirs[v][1];
+  
+  // check if next field exist if not create
+  if (field[xn] === undefined) {
+    field[xn]=({});
+  }
+  if (field[xn][yn] === undefined) {
+    field[xn][yn]=[false,false,false,false,false,false];
+  }
+  
+  steps+=1;
+  
+  // draw the line and update field 
+  draw(x,y,xn,yn);
+  field[xn][yn][v]=true;
+  field[x][y][(v+3)%6]=true;
+  
+  // update worm based on type,
+  worm[0]=xn;
+  worm[1]=yn;
+  odir=worm[2];
+  var typ=0;
+  var cnt=0;
+  
+  for(var i=1; i<6 ; i++){
+	typ*=2;
+    if ( field[xn][yn][(i+odir)%6] == true ) {
+	  typ += 1;
+	  cnt += 1;
+	}  
+  };
+  
+  if (cnt<4){
+    if(typeA[typ]===undefined){
+      typeA[typ]=parseInt(typeString[0]);
+      typeString=typeString.substring(1,typeString.length);    
+    }
+    worm[2]=(odir+typeA[typ])%6;
+  } else {
+    for(var i=0; i<6 ; i++){
+      if ( field[xn][yn][i] == false ) {
+	    worm[2]=(i+3)%6;
+	  }  
+   };
+  
+  }
+ 
+  if ( typ != 31 ) t=setTimeout("tick()",0); 
+}   
+
+function draw(x1,y1,x2,y2){
+  NewLine = SVGDoc.createElementNS(svgns,"line"); 
+  NewLine.setAttribute("x1", offsetX+scale*(x1+y1/2)); 
+  NewLine.setAttribute("y1", offsetY-sq3*scale*y1/2); 
+  NewLine.setAttribute("x2", offsetX+scale*(x2+y2/2));
+  if (offsetX+scale*(x2+y2/2)>xmax) xmax=offsetX+scale*(x2+y2/2);
+  if (offsetX+scale*(x2+y2/2)<xmin) xmin=offsetX+scale*(x2+y2/2);
+  NewLine.setAttribute("y2", offsetY-sq3*scale*y2/2); 
+  if (offsetY-sq3*scale*y2/2>ymax) ymax=offsetY-sq3*scale*y2/2;
+  if (offsetY-sq3*scale*y2/2<ymin) ymin=offsetY-sq3*scale*y2/2;
+  NewLine.setAttribute("rx1", (x1+y1/2)); 
+  NewLine.setAttribute("ry1", -sq3*y1/2); 
+  NewLine.setAttribute("rx2", (x2+y2/2)); 
+  NewLine.setAttribute("ry2", -sq3*y2/2); 
+  NewLine.setAttribute("stroke-width", scale/6); 
+  NewLine.setAttribute("num", steps); 
+  NewLine.setAttribute("stroke","rgb(255,255,0)"); 
+  lineRoot.appendChild(NewLine); 
+  incColor += 1;
+  if (incColor > steps/256 ){
+    var t = lineRoot.childNodes;
+    incColor = 0;
+    for(i=0; i<t.length; i++){
+      t[i].setAttribute("stroke","rgb(255,"+parseInt(255*t[i].getAttribute("num")/steps)+",0)"); 
+    }
+  }
+  if (xmax>(2*offsetX)-10 || ymax>(2*offsetY)-10 || xmin<10 || ymin<10 ){
+    // Lets resize
+	xmin = offsetX;
+    ymin = offsetY;
+    xmax = offsetX;
+    ymax = offsetY;
+	scale=scale*0.95;
+    var t = lineRoot.childNodes;
+    for(i=0; i<t.length; i++){
+	  t[i].setAttribute("x1", offsetX+scale*t[i].getAttribute("rx1")); 
+      t[i].setAttribute("y1", offsetY+scale*t[i].getAttribute("ry1")); 
+      t[i].setAttribute("x2", offsetX+scale*t[i].getAttribute("rx2"));
+	  if(offsetX+scale*t[i].rx2>xmax) xmax=offsetX+scale*t[i].getAttribute("rx2");
+	  if(offsetX+scale*t[i].rx2<xmin) xmin=offsetX+scale*t[i].getAttribute("rx2");
+      t[i].setAttribute("y2", offsetY+scale*t[i].getAttribute("ry2"));
+	  if(offsetX+scale*t[i].ry2>xmax) xmax=offsetX+scale*t[i].getAttribute("ry2");
+	  if(offsetX+scale*t[i].ry2<xmin) xmin=offsetX+scale*t[i].getAttribute("ry2");
+	  t[i].setAttribute("stroke-width", scale/6);
+    }	
+  }
+}
+
+]]></script> 
+  <foreignObject id="form" x="50" y="50" width="200" height="150">
+    <body xmlns="http://www.w3.org/1999/xhtml">
+	  <form onsubmit="return submitWorm()">
+        
+          <label fill="white" for="myWorm">Pick a worm</label>
+          <select id="myWorm" name="worm">
+            <option>001--0-- Length: infinite</option>
+            <option>002--1010001-- Length: 295</option>
+            <option>003--1010002-- Length: 105</option>
+            <option>004--1010005-- Length: 67</option>
+            <option>005--101001-- Length: 33</option>
+            <option>006--1010051-- Length: 2155</option>
+            <option>007--1010052-- Length: 235</option>
+            <option>008--1010055-- Length: 1932</option>
+            <option>009--101020-- Length: 86</option>
+            <option>010--101021-- Length: 99</option>
+            <option>011--1010251-- Length: 327</option>
+            <option>012--1010252-- Length: 475</option>
+            <option>013--1010255-- Length: 61</option>
+            <option>014--1010401-- Length: 68</option>
+            <option>015--1010402-- Length: 196</option>
+            <option>016--1010405-- Length: 67</option>
+            <option>017--101041-- Length: 48</option>
+            <option>018--1010451-- Length: 1831</option>
+            <option>019--1010452-- Length: 684</option>
+            <option>020--1010455-- Length: 99</option>
+            <option>021--1015001-- Length: 85</option>
+            <option>022--1015002-- Length: 83</option>
+            <option>023--1015005-- Length: 96</option>
+            <option>024--101501-- Length: 48</option>
+            <option>025--1015051-- Length: 7524</option>
+            <option>026--1015052-- Length: 203</option>
+            <option>027--1015055-- Length: 67</option>
+            <option>028--1015201-- Length: 10460</option>
+            <option>029--1015202-- Length: infinite</option>
+            <option>030--1015205-- Length: infinite</option>
+            <option>031--101521-- Length: 29</option>
+            <option>032--1015251-- Length: 534</option>
+            <option>033--1015252-- Length: 4318</option>
+            <option>034--1015255-- Length: 93</option>
+            <option>035--1015410-- Length: 66</option>
+            <option>036--1015411-- Length: infinite</option>
+            <option>037--1015415-- Length: 534</option>
+            <option>038--1015420-- Length: 43</option>
+            <option>039--1015421-- Length: 48</option>
+            <option>040--1015425-- Length: 4432</option>
+            <option>041--1015450-- Length: 53</option>
+            <option>042--1015451-- Length: 48</option>
+            <option>043--1015455-- Length: 67</option>
+            <option>044--1040010-- Length: 54</option>
+            <option>045--1040012-- Length: 296</option>
+            <option>046--1040020-- Length: 1660</option>
+            <option>047--1040022-- Length: 970</option>
+            <option>048--1040050-- Length: 71</option>
+            <option>049--1040052-- Length: 102</option>
+            <option>050--1040101-- Length: 289</option>
+            <option>051--1040102-- Length: 97</option>
+            <option>052--1040105-- Length: 110</option>
+            <option>053--104015-- Length: 57</option>
+            <option>054--1040510-- Length: 1545</option>
+            <option>055--1040512-- Length: 569804</option>
+            <option>056--1040521-- Length: 1020</option>
+            <option>057--1040524-- Length: 10795</option>
+            <option>058--1040550-- Length: 451</option>
+            <option>059--1040555-- Length: 451</option>
+            <option>060--1042010-- Length: 918339</option>
+            <option>061--1042015-- Length: unknown</option>
+            <option>062--1042020-- Length: 57493855205939</option>
+            <option>063--1042022-- Length: 57493855205905</option>
+            <option>064--104205-- Length: infinite</option>
+            <option>065--1042110-- Length: 631</option>
+            <option>066--1042115-- Length: 118</option>
+            <option>067--1042120-- Length: 2056</option>
+            <option>068--1042122-- Length: 747</option>
+            <option>069--1042150-- Length: 5865</option>
+            <option>070--1042155-- Length: 398</option>
+            <option>071--1042501-- Length: 1550</option>
+            <option>072--1042502-- Length: 130</option>
+            <option>073--1042505-- Length: 153</option>
+            <option>074--1042521-- Length: 2754</option>
+            <option>075--1042522-- Length: 196</option>
+            <option>076--1042525-- Length: 122</option>
+            <option>077--1044001-- Length: infinite</option>
+            <option>078--1044002-- Length: infinite</option>
+            <option>079--1044005-- Length: 46</option>
+            <option>080--1044011-- Length: infinite</option>
+            <option>081--1044012-- Length: infinite</option>
+            <option>082--1044015-- Length: 212</option>
+            <option>083--1044051-- Length: 330</option>
+            <option>084--1044052-- Length: infinite</option>
+            <option>085--1044055-- Length: 138</option>
+            <option>086--1044201-- Length: infinite</option>
+            <option>087--1044202-- Length: infinite</option>
+            <option>088--1044205-- Length: 17859</option>
+            <option>089--104421-- Length: infinite</option>
+            <option>090--1044251-- Length: 347</option>
+            <option>091--1044252-- Length: infinite</option>
+            <option>092--1044255-- Length: 73</option>
+            <option>093--1051-- Length: 28</option>
+            <option>094--1054-- Length: 28</option>
+            <option>095--120012-- Length: 110</option>
+            <option>096--1200141-- Length: 247</option>
+            <option>097--1200142-- Length: 309</option>
+            <option>098--1200145-- Length: 181</option>
+            <option>099--1200412-- Length: infinite</option>
+            <option>100--1200414-- Length: 711</option>
+            <option>101--1200422-- Length: 5132</option>
+            <option>102--1200424-- Length: 345</option>
+            <option>103--1200452-- Length: 1515</option>
+            <option>104--1200454-- Length: 839</option>
+            <option>105--1200521-- Length: 304</option>
+            <option>106--1200522-- Length: 354</option>
+            <option>107--1200525-- Length: 631</option>
+            <option>108--1200541-- Length: 3943</option>
+            <option>109--1200542-- Length: 201</option>
+            <option>110--1200545-- Length: 237</option>
+            <option>111--1202-- Length: infinite</option>
+            <option>112--1204141-- Length: 176</option>
+            <option>113--1204142-- Length: 735</option>
+            <option>114--1204145-- Length: 92</option>
+            <option>115--120415-- Length: 57</option>
+            <option>116--1204412-- Length: 415</option>
+            <option>117--1204414-- Length: infinite</option>
+            <option>118--120442-- Length: infinite</option>
+            <option>119--1204454-- Length: 2578</option>
+            <option>120--1204455-- Length: 2578</option>
+            <option>121--12045-- Length: infinite</option>
+            <option>122--121401-- Length: 48</option>
+            <option>123--1214041-- Length: 77</option>
+            <option>124--1214042-- Length: 609</option>
+            <option>125--1214045-- Length: 114</option>
+            <option>126--1214051-- Length: 22847</option>
+            <option>127--1214052-- Length: infinite</option>
+            <option>128--1214055-- Length: 134</option>
+            <option>129--121421-- Length: 29</option>
+            <option>130--1214241-- Length: 105</option>
+            <option>131--1214242-- Length: 7882</option>
+            <option>132--1214245-- Length: 45</option>
+            <option>133--1214251-- Length: 281</option>
+            <option>134--1214252-- Length: 62</option>
+            <option>135--1214255-- Length: 152</option>
+            <option>136--1214411-- Length: infinite</option>
+            <option>137--1214412-- Length: 48</option>
+            <option>138--1214415-- Length: 48</option>
+            <option>139--121444-- Length: infinite</option>
+            <option>140--121445-- Length: infinite</option>
+            <option>141--121510-- Length: 33</option>
+            <option>142--121512-- Length: 99</option>
+            <option>143--121514-- Length: 48</option>
+            <option>144--1215401-- Length: 151</option>
+            <option>145--1215402-- Length: 42</option>
+            <option>146--1215405-- Length: 53</option>
+            <option>147--1215421-- Length: 2526</option>
+            <option>148--1215422-- Length: 2857</option>
+            <option>149--1215425-- Length: 561</option>
+            <option>150--121544-- Length: 33</option>
+            <option>151--12155-- Length: 28</option>
+            <option>152--1251-- Length: 48</option>
+            <option>153--1252101-- Length: 220142</option>
+            <option>154--1252104-- Length: 7584</option>
+            <option>155--1252105-- Length: 9260</option>
+            <option>156--1252121-- Length: infinite</option>
+            <option>157--1252124-- Length: 2565</option>
+            <option>158--1252125-- Length: 731</option>
+            <option>159--1252141-- Length: 553</option>
+            <option>160--1252144-- Length: 173</option>
+            <option>161--1252145-- Length: infinite</option>
+            <option>162--12522-- Length: infinite</option>
+            <option>163--1252501-- Length: 248</option>
+            <option>164--1252504-- Length: 236</option>
+            <option>165--1252505-- Length: 101</option>
+            <option>166--1252521-- Length: 1063</option>
+            <option>167--1252524-- Length: 162</option>
+            <option>168--1252525-- Length: 86</option>
+            <option>169--1252541-- Length: 514</option>
+            <option>170--1252544-- Length: 1116</option>
+            <option>171--1252545-- Length: 738</option>
+            <option>172--1420011-- Length: 83</option>
+            <option>173--1420012-- Length: 81</option>
+            <option>174--1420015-- Length: 94</option>
+            <option>175--1420041-- Length: infinite</option>
+            <option>176--1420042-- Length: 897</option>
+            <option>177--1420045-- Length: 285</option>
+            <option>178--1420051-- Length: 90</option>
+            <option>179--1420052-- Length: 73</option>
+            <option>180--1420055-- Length: 697</option>
+            <option>181--1420211-- Length: infinite</option>
+            <option>182--1420214-- Length: infinite</option>
+            <option>183--1420215-- Length: infinite</option>
+            <option>184--1420221-- Length: infinite</option>
+            <option>185--1420224-- Length: 16811365528</option>
+            <option>187--142025-- Length: 34</option>
+            <option>188--142041-- Length: 90</option>
+            <option>189--1420441-- Length: 50</option>
+            <option>190--1420442-- Length: infinite</option>
+            <option>191--1420445-- Length: 1688</option>
+            <option>192--1420451-- Length: 4419</option>
+            <option>193--1420452-- Length: 3566</option>
+            <option>194--1420455-- Length: 496</option>
+            <option>195--142101-- Length: 29</option>
+            <option>196--1421041-- Length: 50</option>
+            <option>197--1421042-- Length: 248</option>
+            <option>198--1421045-- Length: 39</option>
+            <option>199--1421051-- Length: 73</option>
+            <option>200--1421052-- Length: 5715</option>
+            <option>201--1421055-- Length: infinite</option>
+            <option>202--1421211-- Length: 33</option>
+            <option>203--1421214-- Length: 219</option>
+            <option>204--1421215-- Length: 79</option>
+            <option>205--1421221-- Length: 23</option>
+            <option>206--1421224-- Length: 3793</option>
+            <option>207--1421225-- Length: 46</option>
+            <option>208--1421251-- Length: 29</option>
+            <option>209--1421254-- Length: 52</option>
+            <option>210--1421255-- Length: infinite</option>
+            <option>211--1421411-- Length: infinite</option>
+            <option>212--1421412-- Length: 29</option>
+            <option>213--1421415-- Length: 35</option>
+            <option>214--142144-- Length: infinite</option>
+            <option>215--142145-- Length: infinite</option>
+            <option>216--14251-- Length: 48</option>
+            <option>217--14252-- Length: infinite</option>
+            <option>218--14255-- Length: 44</option>
+            <option>219--1450011-- Length: 83</option>
+            <option>220--1450012-- Length: 81</option>
+            <option>221--1450015-- Length: 94</option>
+            <option>222--1450041-- Length: infinite</option>
+            <option>223--1450042-- Length: 897</option>
+            <option>224--1450045-- Length: 285</option>
+            <option>225--1450051-- Length: 90</option>
+            <option>226--1450052-- Length: 73</option>
+            <option>227--1450055-- Length: 697</option>
+            <option>228--1450211-- Length: infinite</option>
+            <option>229--1450214-- Length: infinite</option>
+            <option>230--1450215-- Length: infinite</option>
+            <option>231--1450221-- Length: infinite</option>
+            <option>232--1450224-- Length: 16811365528</option>
+            <option>233--1450225-- Length: 284</option>
+            <option>234--145025-- Length: 34</option>
+            <option>235--145041-- Length: 90</option>
+            <option>236--1450441-- Length: 50</option>
+            <option>237--1450442-- Length: infinite</option>
+            <option>238--1450445-- Length: 1688</option>
+            <option>239--1450451-- Length: 4419</option>
+            <option>240--1450452-- Length: 3566</option>
+            <option>241--1450455-- Length: 496</option>
+            <option>242--145101-- Length: 29</option>
+            <option>243--1451041-- Length: 50</option>
+            <option>244--1451042-- Length: 248</option>
+            <option>245--1451045-- Length: 39</option>
+            <option>246--1451051-- Length: 73</option>
+            <option>247--1451052-- Length: 5715</option>
+            <option>248--1451055-- Length: infinite</option>
+            <option>249--1451211-- Length: 33</option>
+            <option>250--1451214-- Length: 219</option>
+            <option>251--1451215-- Length: 79</option>
+            <option>252--1451221-- Length: 23</option>
+            <option>253--1451224-- Length: 3793</option>
+            <option>254--1451225-- Length: 46</option>
+            <option>255--1451251-- Length: 29</option>
+            <option>256--1451254-- Length: 52</option>
+            <option>257--1451255-- Length: infinite</option>
+            <option>258--1451411-- Length: infinite</option>
+            <option>259--1451412-- Length: 29</option>
+            <option>260--1451415-- Length: 35</option>
+            <option>261--145144-- Length: infinite</option>
+            <option>262--145145-- Length: infinite</option>
+            <option>263--14551-- Length: 48</option>
+            <option>264--14552-- Length: infinite</option>
+            <option>265--14555-- Length: 44</option>
+            <option>266--150011-- Length: 50</option>
+            <option>267--150015-- Length: 33</option>
+            <option>268--1500411-- Length: 196</option>
+            <option>269--1500415-- Length: 69</option>
+            <option>270--1500421-- Length: 732</option>
+            <option>271--1500425-- Length: 159</option>
+            <option>272--1500451-- Length: 78</option>
+            <option>273--1500455-- Length: 45</option>
+            <option>274--15005-- Length: infinite</option>
+            <option>275--150111-- Length: 33</option>
+            <option>276--150115-- Length: 29</option>
+            <option>277--1501411-- Length: 55</option>
+            <option>278--1501412-- Length: 71</option>
+            <option>279--1501415-- Length: 44</option>
+            <option>280--1501451-- Length: 140</option>
+            <option>281--1501452-- Length: 113</option>
+            <option>282--1501455-- Length: 119</option>
+            <option>283--1501511-- Length: 1672</option>
+            <option>284--1501515-- Length: 10307</option>
+            <option>285--1501521-- Length: infinite</option>
+            <option>286--1501525-- Length: 165</option>
+            <option>287--1501551-- Length: 134</option>
+            <option>288--1501555-- Length: 112</option>
+            <option>289--1505111-- Length: 52549</option>
+            <option>290--1505115-- Length: infinite</option>
+            <option>291--1505141-- Length: 1632</option>
+            <option>292--1505145-- Length: 1632</option>
+            <option>293--1505151-- Length: 1978</option>
+            <option>294--1505155-- Length: 5148</option>
+            <option>295--1505211-- Length: 419</option>
+            <option>296--1505215-- Length: 1564</option>
+            <option>297--1505241-- Length: 4371</option>
+            <option>298--1505245-- Length: 7143</option>
+            <option>299--1505251-- Length: 454</option>
+            <option>300--1505255-- Length: 306</option>
+            <option>301--1505511-- Length: 62</option>
+            <option>302--1505514-- Length: 130</option>
+            <option>303--1505515-- Length: 55</option>
+            <option>304--1505551-- Length: 636</option>
+            <option>305--1505554-- Length: 206</option>
+            <option>306--1505555-- Length: 242</option>
+            <option>307--1520-- Length: infinite</option>
+            <option>308--152111-- Length: 33</option>
+            <option>309--152115-- Length: 29</option>
+            <option>310--1521411-- Length: 148</option>
+            <option>311--1521415-- Length: 247</option>
+            <option>312--1521421-- Length: 393</option>
+            <option>313--1521425-- Length: 113</option>
+            <option>314--1521451-- Length: 136</option>
+            <option>315--1521455-- Length: 132</option>
+            <option>316--1521511-- Length: 623</option>
+            <option>317--1521515-- Length: 2377</option>
+            <option>318--1521521-- Length: 176</option>
+            <option>319--1521525-- Length: 1742</option>
+            <option>320--1521551-- Length: 152</option>
+            <option>321--1521555-- Length: 112</option>
+            <option>322--1525111-- Length: 534</option>
+            <option>323--1525115-- Length: infinite</option>
+            <option>324--1525121-- Length: 356</option>
+            <option>325--1525125-- Length: 606</option>
+            <option>326--1525151-- Length: 533</option>
+            <option>327--1525155-- Length: 287</option>
+            <option>328--1525411-- Length: 2754</option>
+            <option>329--1525412-- Length: infinite</option>
+            <option>330--1525415-- Length: 126</option>
+            <option selected="">331--1525451-- Length: 5708</option>
+            <option>332--1525452-- Length: infinite</option>
+            <option>333--1525455-- Length: 338</option>
+            <option>334--1525511-- Length: 83618</option>
+            <option>335--1525515-- Length: 1574</option>
+            <option>336--1525521-- Length: 7275</option>
+            <option>337--1525525-- Length: 843</option>
+            <option>338--1525551-- Length: 262</option>
+            <option>339--1525555-- Length: 286</option>
+            <option>340--1541011-- Length: 194</option>
+            <option>341--1541012-- Length: 294</option>
+            <option>342--1541015-- Length: 180</option>
+            <option>343--1541051-- Length: 354</option>
+            <option>344--1541052-- Length: 107</option>
+            <option>345--1541055-- Length: 708</option>
+            <option>346--154111-- Length: infinite</option>
+            <option>347--1541121-- Length: 48</option>
+            <option>348--1541125-- Length: 114</option>
+            <option>349--1541151-- Length: 48</option>
+            <option>350--1541155-- Length: 58</option>
+            <option>351--1541511-- Length: 2811</option>
+            <option>352--1541515-- Length: 663</option>
+            <option>353--1541521-- Length: infinite</option>
+            <option>354--1541525-- Length: infinite</option>
+            <option>355--1541551-- Length: 245</option>
+            <option>356--1541555-- Length: 321</option>
+            <option>357--1544101-- Length: infinite</option>
+            <option>358--1544102-- Length: infinite</option>
+            <option>359--1544105-- Length: 45477</option>
+            <option>360--154411-- Length: infinite</option>
+            <option>361--1544151-- Length: 558</option>
+            <option>362--1544152-- Length: infinite</option>
+            <option>363--1544155-- Length: 7565</option>
+            <option>364--1544501-- Length: infinite</option>
+            <option>365--1544502-- Length: infinite</option>
+            <option>366--1544505-- Length: 512</option>
+            <option>367--1544511-- Length: infinite</option>
+            <option>368--1544512-- Length: infinite</option>
+            <option>369--1544515-- Length: 1457</option>
+            <option>370--1544551-- Length: 4802</option>
+            <option>371--1544552-- Length: infinite</option>
+            <option>372--1544555-- Length: 138</option>
+            <option>373--1545-- Length: infinite</option>
+            <option>374--200-- Length: 9</option>
+            <option>375--2010-- Length: 15</option>
+            <option>376--20140-- Length: 30</option>
+            <option>377--201412-- Length: 45</option>
+            <option>378--2014141-- Length: 609</option>
+            <option>379--2014142-- Length: 3563608205</option>
+            <option>380--2014144-- Length: 615</option>
+            <option>381--201415-- Length: 37</option>
+            <option>382--20142-- Length: 27</option>
+            <option>383--2015-- Length: infinite</option>
+            <option>384--2104-- Length: 12</option>
+            <option>385--2105-- Length: 21</option>
+            <option>386--2144-- Length: 18</option>
+            <option>387--21450-- Length: 63</option>
+            <option>388--2145121-- Length: 438</option>
+            <option>389--2145122-- Length: 438</option>
+            <option>390--2145124-- Length: 411</option>
+            <option>391--2145141-- Length: 2478</option>
+            <option>392--2145142-- Length: 87996218</option>
+            <option>393--2145144-- Length: 2373</option>
+            <option>394--214515-- Length: 68</option>
+            <option>395--21452-- Length: 48</option>
+            <option>396--215-- Length: infinite</option>
+            <option>397--244-- Length: 9</option>
+            <option>398--2450-- Length: 15</option>
+            <option>399--24540-- Length: 30</option>
+            <option>400--245412-- Length: 45</option>
+            <option>401--2454141-- Length: 609</option>
+            <option>402--2454142-- Length: 3563608205</option>
+            <option>403--2454144-- Length: 615</option>
+            <option>404--245415-- Length: 37</option>
+            <option>405--24542-- Length: 27</option>
+            <option>406--2455-- Length: infinite</option>
+            <option>407--2510-- Length: 12</option>
+            <option>408--2514-- Length: 18</option>
+            <option>409--2515-- Length: infinite</option>
+            <option>410--2540-- Length: 12</option>
+            <option>411--2544-- Length: 18</option>
+            <option>412--2545-- Length: infinite</option>
+          </select>
+        <input type="submit" value="Submit"/>
+      </form>
+    </body>
+  </foreignObject>
+
+ <g id="Lines">
+ </g>
+</svg>
