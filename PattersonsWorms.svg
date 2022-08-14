@@ -25,6 +25,9 @@ var field = new Object;
 var worm = [0,0,0];
 var offsetX = window.innerWidth/2;
 var offsetY = window.innerHeight/2;
+// for some reason does not work in embedded object           
+if ( offsetX == 0 ) offsetX = 512;                            
+if ( offsetY == 0 ) offsetY = 320;             
 var typeA = null;
 var xmin = offsetX;
 var ymin = offsetY;
